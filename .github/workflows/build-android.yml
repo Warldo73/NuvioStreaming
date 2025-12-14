@@ -11,42 +11,48 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      # 1. Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Set up Node.js (required for Expo / React Native)
+      # 2. Set up Node.js (Expo + RN compatible)
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
           cache: npm
 
-      # Install JS dependencies
+      # 3. Install JS dependencies
+      #    - install devDependencies (for patch-package)
+      #    - disable Expo config plugins (fixes ESM error)
       - name: Install JS dependencies
         env:
           NODE_ENV: production
+          EXPO_NO_CONFIG_PLUGINS: "1"
         run: npm install --legacy-peer-deps --include=dev
 
-      # Set up Java for Android build
+      # 4. Set up Java for Android
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
 
-      # Make Gradle wrapper executable
+      # 5. Make Gradle wrapper executable
       - name: Make gradlew executable
         run: chmod +x android/gradlew
 
-      # Build debug APK
+      # 6. Build debug APK
+      #    - disable Expo config plugins again (critical)
       - name: Build debug APK
         env:
           NODE_ENV: production
+          EXPO_NO_CONFIG_PLUGINS: "1"
         run: |
           cd android
           ./gradlew assembleDebug
 
-      # Upload APK artifact
+      # 7. Upload APK artifact
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
