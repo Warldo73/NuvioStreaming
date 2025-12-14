@@ -25,7 +25,7 @@ jobs:
       - name: Install JS dependencies
         env:
           NODE_ENV: production
-        run: npm install --legacy-peer-deps
+        run: npm install --legacy-peer-deps --include=dev
 
       # Set up Java for Android build
       - name: Set up Java
