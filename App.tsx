@@ -5,6 +5,7 @@
  * @format
  */
 
+import { useWindowDimensions } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -241,21 +242,39 @@ const ThemedApp = () => {
 }
 
 function App(): React.JSX.Element {
+  const { width } = useWindowDimensions();
+  const isTV = Platform.isTV;
+  const MAX_TV_WIDTH = 1400;
+
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <GenreProvider>
-        <CatalogProvider>
-          <TraktProvider>
-            <ThemeProvider>
-              <TrailerProvider>
-                <ToastProvider>
-                  <ThemedApp />
-                </ToastProvider>
-              </TrailerProvider>
-            </ThemeProvider>
-          </TraktProvider>
-        </CatalogProvider>
-      </GenreProvider>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: '#000' }}>
+      <View
+        style={{
+          flex: 1,
+          alignItems: isTV ? 'center' : 'stretch',
+        }}
+      >
+        <View
+          style={{
+            width: isTV ? Math.min(width, MAX_TV_WIDTH) : '100%',
+            flex: 1,
+          }}
+        >
+          <GenreProvider>
+            <CatalogProvider>
+              <TraktProvider>
+                <ThemeProvider>
+                  <TrailerProvider>
+                    <ToastProvider>
+                      <ThemedApp />
+                    </ToastProvider>
+                  </TrailerProvider>
+                </ThemeProvider>
+              </TraktProvider>
+            </CatalogProvider>
+          </GenreProvider>
+        </View>
+      </View>
     </GestureHandlerRootView>
   );
 }
