@@ -3,13 +3,11 @@ name: Build Android APK
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
 
     steps:
       - name: Checkout repo
@@ -21,13 +19,8 @@ jobs:
           node-version: 20
           cache: npm
 
-      - name: Install patch-package
-        run: npm install -g patch-package
-
-      - name: Install dependencies
-        env:
-          NODE_ENV: production
-        run: npm install --legacy-peer-deps --include=dev
+      - name: Install JS dependencies
+        run: npm install --legacy-peer-deps
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -38,33 +31,19 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Create local.properties
-        run: |
-          echo "sdk.dir=$ANDROID_SDK_ROOT" > android/local.properties
+      - name: Accept Android SDK licenses
+        run: yes | sdkmanager --licenses
 
-      - name: Free disk space
-        run: |
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /usr/local/lib/android
-          sudo rm -rf ~/.gradle/caches
-
-      - name: Make gradlew executable
-        run: chmod +x android/gradlew
-
-      - name: Build 32-bit Debug APK
+      - name: Build Debug APK
         env:
           NODE_ENV: production
         run: |
           cd android
           ./gradlew clean
-          ./gradlew assembleDebug \
-            --no-daemon \
-            --no-build-cache \
-            --parallel=false \
-            -Pandroid.injected.build.abi=armeabi-v7a
+          ./gradlew assembleDebug --no-daemon --no-build-cache --parallel=false
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: nuvio-tv-32bit-debug-apk
+          name: nuvio-debug-apk
           path: android/app/build/outputs/apk/debug/*.apk
