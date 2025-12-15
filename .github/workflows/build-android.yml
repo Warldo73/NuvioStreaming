@@ -40,12 +40,13 @@ jobs:
 
       # 6. Build Debug APK (CI-safe, no cache, no daemon)
       - name: Build Debug APK
-        env:
-          NODE_ENV: production
-        run: |
-          cd android
-          ./gradlew clean
-          ./gradlew assembleDebug --no-daemon --no-build-cache
+  env:
+    NODE_ENV: production
+  run: |
+    cd android
+    rm -rf ~/.gradle
+    rm -rf app/build
+    ./gradlew assembleDebug --no-daemon --no-build-cache --parallel=false
 
       # 7. Upload APK artifact
       - name: Upload APK
