@@ -9,46 +9,49 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
 
     steps:
-      # 1. Checkout repository
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      # 2. Set up Node.js (Expo + RN stable)
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
           cache: npm
 
-      # 3. Install JS dependencies (patch-package must run)
-      #    DO NOT set NODE_ENV here
       - name: Install JS dependencies
-        run: npm install --legacy-peer-deps
+        env:
+          NODE_ENV: production
+        run: |
+          npm install --legacy-peer-deps
 
-      # 4. Set up Java for Android build
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
 
-      # 5. Make Gradle wrapper executable
+      - name: Clean Gradle cache (save disk)
+        run: |
+          rm -rf ~/.gradle/caches
+          rm -rf ~/.gradle/wrapper
+
       - name: Make gradlew executable
         run: chmod +x android/gradlew
 
-      # 6. Build Debug APK (CI-safe, no cache, no daemon)
-      - name: Build Debug APK
-  env:
-    NODE_ENV: production
-  run: |
-    cd android
-    rm -rf ~/.gradle
-    rm -rf app/build
-    ./gradlew assembleDebug --no-daemon --no-build-cache --parallel=false
+      - name: Build Debug APK (32-bit only)
+        env:
+          NODE_ENV: production
+        run: |
+          cd android
+          ./gradlew clean
+          ./gradlew assembleDebug \
+            --no-daemon \
+            --no-build-cache \
+            --parallel=false
 
-      # 7. Upload APK artifact
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
