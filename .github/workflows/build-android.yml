@@ -21,11 +21,14 @@ jobs:
           node-version: 20
           cache: npm
 
-      - name: Install JS dependencies
+      - name: Install patch-package first
+        run: npm install -g patch-package
+
+      - name: Install dependencies (include dev)
         env:
           NODE_ENV: production
         run: |
-          npm install --legacy-peer-deps
+          npm install --legacy-peer-deps --include=dev
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -33,15 +36,16 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Clean Gradle cache (save disk)
+      - name: Free disk space (important)
         run: |
-          rm -rf ~/.gradle/caches
-          rm -rf ~/.gradle/wrapper
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf ~/.gradle/caches
 
       - name: Make gradlew executable
         run: chmod +x android/gradlew
 
-      - name: Build Debug APK (32-bit only)
+      - name: Build 32-bit Debug APK (TV-safe)
         env:
           NODE_ENV: production
         run: |
@@ -50,10 +54,11 @@ jobs:
           ./gradlew assembleDebug \
             --no-daemon \
             --no-build-cache \
-            --parallel=false
+            --parallel=false \
+            -Pandroid.injected.build.abi=armeabi-v7a
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: nuvio-tv-debug-apk
+          name: nuvio-tv-32bit-debug-apk
           path: android/app/build/outputs/apk/debug/*.apk
