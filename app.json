@@ -68,37 +68,36 @@
     },
     "owner": "nayifleo",
     "plugins": [
-      [
-        "@sentry/react-native/expo",
-        {
-          "url": "https://sentry.io/",
-          "project": "react-native",
-          "organization": "tapframe"
-        }
-      ],
-      "expo-localization",
-      [
-        "expo-updates",
-        {
-          "username": "nayifleo"
-        }
-      ],
-      [
-        "expo-libvlc-player",
-        {
-          "localNetworkPermission": "Allow $(PRODUCT_NAME) to access your local network",
-          "supportsBackgroundPlayback": true
-        }
-      ],
-      "react-native-bottom-tabs",
-      [
-        "react-native-google-cast",
-        {
-          "receiverAppId": "CC1AD845",
-          "iosStartDiscoveryAfterFirstTapOnCastButton": true
-        }
-      ]
-    ],
+  [
+    "@sentry/react-native/expo",
+    {
+      "url": "https://sentry.io/",
+      "project": "react-native",
+      "organization": "tapframe"
+    }
+  ],
+  "expo-localization",
+  [
+    "expo-updates",
+    {
+      "username": "nayifleo"
+    }
+  ],
+  [
+    "expo-libvlc-player",
+    {
+      "localNetworkPermission": "Allow $(PRODUCT_NAME) to access your local network",
+      "supportsBackgroundPlayback": true
+    }
+  ],
+  [
+    "react-native-google-cast",
+    {
+      "receiverAppId": "CC1AD845",
+      "iosStartDiscoveryAfterFirstTapOnCastButton": true
+    }
+  ]
+],
     "updates": {
       "enabled": true,
       "checkAutomatically": "ON_ERROR_RECOVERY",
