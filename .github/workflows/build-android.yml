@@ -11,36 +11,43 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      # 1. Checkout repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
+      # 2. Set up Node.js (Expo + RN stable)
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
           cache: npm
 
-      # 🚨 DO NOT set NODE_ENV here
-      - name: Install JS dependencies (with patches)
+      # 3. Install JS dependencies (patch-package must run)
+      #    DO NOT set NODE_ENV here
+      - name: Install JS dependencies
         run: npm install --legacy-peer-deps
 
+      # 4. Set up Java for Android build
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
 
+      # 5. Make Gradle wrapper executable
       - name: Make gradlew executable
         run: chmod +x android/gradlew
 
-      # NODE_ENV only for Gradle step
+      # 6. Build Debug APK (CI-safe, no cache, no daemon)
       - name: Build Debug APK
         env:
           NODE_ENV: production
         run: |
           cd android
-          ./gradlew assembleDebug
+          ./gradlew clean
+          ./gradlew assembleDebug --no-daemon --no-build-cache
 
+      # 7. Upload APK artifact
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
