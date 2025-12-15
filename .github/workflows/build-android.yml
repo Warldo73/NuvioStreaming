@@ -21,14 +21,13 @@ jobs:
           node-version: 20
           cache: npm
 
-      - name: Install patch-package first
+      - name: Install patch-package
         run: npm install -g patch-package
 
-      - name: Install dependencies (include dev)
+      - name: Install dependencies
         env:
           NODE_ENV: production
-        run: |
-          npm install --legacy-peer-deps --include=dev
+        run: npm install --legacy-peer-deps --include=dev
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -36,7 +35,14 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Free disk space (important)
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Create local.properties
+        run: |
+          echo "sdk.dir=$ANDROID_SDK_ROOT" > android/local.properties
+
+      - name: Free disk space
         run: |
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /usr/local/lib/android
@@ -45,7 +51,7 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x android/gradlew
 
-      - name: Build 32-bit Debug APK (TV-safe)
+      - name: Build 32-bit Debug APK
         env:
           NODE_ENV: production
         run: |
