@@ -40,7 +40,7 @@ jobs:
         run: |
           cd android
           ./gradlew clean
-          ./gradlew assembleDebug --no-daemon --no-build-cache --parallel=false
+          ./gradlew assembleDebug --no-daemon --no-build-cache --no-parallel
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
