@@ -6,21 +6,43 @@ apply plugin: "io.sentry.android.gradle"
 def projectRoot = rootDir.getAbsoluteFile().getParentFile().getAbsolutePath()
 
 react {
-    entryFile = file(["node", "-e", "require('expo/scripts/resolveAppEntry')", projectRoot, "android", "absolute"]
-        .execute(null, rootDir).text.trim())
-    reactNativeDir = new File(["node", "--print", "require.resolve('react-native/package.json')"]
-        .execute(null, rootDir).text.trim()).getParentFile().getAbsoluteFile()
-    hermesCommand = new File(["node", "--print", "require.resolve('react-native/package.json')"]
-        .execute(null, rootDir).text.trim()).getParentFile().getAbsolutePath() +
-        "/sdks/hermesc/%OS-BIN%/hermesc"
-    codegenDir = new File(["node", "--print",
-        "require.resolve('@react-native/codegen/package.json', { paths: [require.resolve('react-native/package.json')] })"]
-        .execute(null, rootDir).text.trim()).getParentFile().getAbsoluteFile()
+    entryFile = file([
+        "node",
+        "-e",
+        "require('expo/scripts/resolveAppEntry')",
+        projectRoot,
+        "android",
+        "absolute"
+    ].execute(null, rootDir).text.trim())
 
-    enableBundleCompression = (findProperty('android.enableBundleCompression') ?: false).toBoolean()
-    cliFile = new File(["node", "--print",
-        "require.resolve('@expo/cli', { paths: [require.resolve('expo/package.json')] })"]
-        .execute(null, rootDir).text.trim())
+    reactNativeDir = new File([
+        "node",
+        "--print",
+        "require.resolve('react-native/package.json')"
+    ].execute(null, rootDir).text.trim())
+        .getParentFile()
+        .getAbsoluteFile()
+
+    hermesCommand =
+        reactNativeDir.getAbsolutePath() + "/sdks/hermesc/%OS-BIN%/hermesc"
+
+    codegenDir = new File([
+        "node",
+        "--print",
+        "require.resolve('@react-native/codegen/package.json', { paths: [require.resolve('react-native/package.json')] })"
+    ].execute(null, rootDir).text.trim())
+        .getParentFile()
+        .getAbsoluteFile()
+
+    enableBundleCompression =
+        (findProperty('android.enableBundleCompression') ?: false).toBoolean()
+
+    cliFile = new File([
+        "node",
+        "--print",
+        "require.resolve('@expo/cli', { paths: [require.resolve('expo/package.json')] })"
+    ].execute(null, rootDir).text.trim())
+
     bundleCommand = "export:embed"
 
     autolinkLibrariesWithApp()
@@ -29,7 +51,7 @@ react {
 def enableMinifyInReleaseBuilds =
     (findProperty('android.enableMinifyInReleaseBuilds') ?: false).toBoolean()
 
-def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
+def jscFlavor = "io.github.react-native-community:jsc-android:2026004.+"
 
 apply from: new File(
     ["node", "--print",
@@ -43,32 +65,35 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.nuvio.app'
+    namespace "com.nuvio.app"
 
     defaultConfig {
-        applicationId 'com.nuvio.app'
+        applicationId "com.nuvio.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 25
         versionName "1.2.10"
 
-        // FORCE 32-BIT ONLY (ANDROID TV)
+        // ✅ FORCE 32-BIT ONLY (Android TV safe)
         ndk {
             abiFilters "armeabi-v7a"
         }
 
-        buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL",
+        buildConfigField(
+            "String",
+            "REACT_NATIVE_RELEASE_LEVEL",
             "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
+        )
     }
 
-    // ❌ REMOVED ABI SPLITS (disk-killer on CI)
+    // ❌ ABI SPLITS REMOVED (CI disk killer)
 
     signingConfigs {
         debug {
-            storeFile file('debug.keystore')
-            storePassword 'android'
-            keyAlias 'androiddebugkey'
-            keyPassword 'android'
+            storeFile file("debug.keystore")
+            storePassword "android"
+            keyAlias "androiddebugkey"
+            keyPassword "android"
         }
     }
 
@@ -78,40 +103,47 @@ android {
         }
         release {
             signingConfig signingConfigs.debug
-            def enableShrinkResources =
-                findProperty('android.enableShrinkResourcesInReleaseBuilds') ?: 'false'
-            shrinkResources enableShrinkResources.toBoolean()
+            shrinkResources (
+                (findProperty('android.enableShrinkResourcesInReleaseBuilds') ?: 'false')
+                    .toBoolean()
+            )
             minifyEnabled enableMinifyInReleaseBuilds
-            proguardFiles getDefaultProguardFile("proguard-android.txt"),
+            proguardFiles(
+                getDefaultProguardFile("proguard-android.txt"),
                 "proguard-rules.pro"
-            def enablePngCrunchInRelease =
-                findProperty('android.enablePngCrunchInReleaseBuilds') ?: 'true'
-            crunchPngs enablePngCrunchInRelease.toBoolean()
+            )
+            crunchPngs (
+                (findProperty('android.enablePngCrunchInReleaseBuilds') ?: 'true')
+                    .toBoolean()
+            )
         }
     }
 
     packagingOptions {
         jniLibs {
+            // ✅ Prevent strip / LLVM disk crash
             useLegacyPackaging true
         }
+        doNotStrip "**/*.so"
     }
 
     androidResources {
-        ignoreAssetsPattern
+        ignoreAssetsPattern(
             '!.svn:!.git:!.ds_store:!*.scc:!CVS:!thumbs.db:!picasa.ini:!*~'
+        )
     }
 }
 
 sentry {
-    uploadNativeSymbols = true
-    includeNativeSources = true
+    uploadNativeSymbols = false
+    includeNativeSources = false
     autoInstallation {
         enabled = false
     }
 }
 
 configurations.all {
-    exclude group: 'com.caverock', module: 'androidsvg'
+    exclude group: "com.caverock", module: "androidsvg"
 }
 
 dependencies {
@@ -124,7 +156,9 @@ dependencies {
     }
 
     implementation files("libs/lib-decoder-ffmpeg-release.aar")
-    implementation "com.google.android.gms:play-services-cast-framework:${safeExtGet('castFrameworkVersion', '+')}"
+    implementation(
+        "com.google.android.gms:play-services-cast-framework:${safeExtGet('castFrameworkVersion', '+')}"
+    )
 }
 
 def safeExtGet(prop, fallback) {
