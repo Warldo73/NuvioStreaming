@@ -24,7 +24,7 @@ react {
         .getAbsoluteFile()
 
     hermesCommand =
-        reactNativeDir.getAbsolutePath() + "/sdks/hermesc/%OS-BIN%/hermesc"
+        reactNativeDir.asFile.absolutePath + "/sdks/hermesc/%OS-BIN%/hermesc"
 
     codegenDir = new File([
         "node",
