@@ -23,8 +23,7 @@ react {
         .getParentFile()
         .getAbsoluteFile()
 
-    hermesCommand =
-        reactNativeDir.asFile.absolutePath + "/sdks/hermesc/%OS-BIN%/hermesc"
+    // ❌ DO NOT override hermesCommand (Expo + Gradle 8 incompatible)
 
     codegenDir = new File([
         "node",
@@ -34,8 +33,7 @@ react {
         .getParentFile()
         .getAbsoluteFile()
 
-    enableBundleCompression =
-        (findProperty('android.enableBundleCompression') ?: false).toBoolean()
+    enableBundleCompression = false
 
     cliFile = new File([
         "node",
@@ -49,7 +47,7 @@ react {
 }
 
 def enableMinifyInReleaseBuilds =
-    (findProperty('android.enableMinifyInReleaseBuilds') ?: false).toBoolean()
+    (findProperty("android.enableMinifyInReleaseBuilds") ?: false).toBoolean()
 
 def jscFlavor = "io.github.react-native-community:jsc-android:2026004.+"
 
@@ -74,7 +72,7 @@ android {
         versionCode 25
         versionName "1.2.10"
 
-        // ✅ FORCE 32-BIT ONLY (Android TV safe)
+        // ✅ FORCE 32-BIT ONLY (Android TV)
         ndk {
             abiFilters "armeabi-v7a"
         }
@@ -85,8 +83,6 @@ android {
             "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
         )
     }
-
-    // ❌ ABI SPLITS REMOVED (CI disk killer)
 
     signingConfigs {
         debug {
@@ -104,7 +100,7 @@ android {
         release {
             signingConfig signingConfigs.debug
             shrinkResources (
-                (findProperty('android.enableShrinkResourcesInReleaseBuilds') ?: 'false')
+                (findProperty("android.enableShrinkResourcesInReleaseBuilds") ?: "false")
                     .toBoolean()
             )
             minifyEnabled enableMinifyInReleaseBuilds
@@ -113,7 +109,7 @@ android {
                 "proguard-rules.pro"
             )
             crunchPngs (
-                (findProperty('android.enablePngCrunchInReleaseBuilds') ?: 'true')
+                (findProperty("android.enablePngCrunchInReleaseBuilds") ?: "true")
                     .toBoolean()
             )
         }
@@ -121,15 +117,15 @@ android {
 
     packagingOptions {
         jniLibs {
-            // ✅ Prevent strip / LLVM disk crash
             useLegacyPackaging true
         }
+        // ✅ Prevent LLVM / strip disk crashes
         doNotStrip "**/*.so"
     }
 
     androidResources {
         ignoreAssetsPattern(
-            '!.svn:!.git:!.ds_store:!*.scc:!CVS:!thumbs.db:!picasa.ini:!*~'
+            "!.svn:!.git:!.ds_store:!*.scc:!CVS:!thumbs.db:!picasa.ini:!*~"
         )
     }
 }
